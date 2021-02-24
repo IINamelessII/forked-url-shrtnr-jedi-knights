@@ -34,7 +34,7 @@ plugin. We use Google rules (local copy `./config/checkstyle/checkstyle.xml`).
 2. Open the project directory in IntelliJ Idea Edu
 3. Configure IDE code style settings
 
-  1. Open `Settings`
-  2. Go to `Editor` -> `Code Style` -> `Import Scheme`
-     ![Settings screenshot](./media/code-style-import.png)
-  3. Import scheme from `./config/idea/intellij-java-google-style.xml`
+1. Open `Settings`
+2. Go to `Editor` -> `Code Style` -> `Import Scheme`
+   ![Settings screenshot](./media/code-style-import.png)
+3. Import scheme from `./config/idea/intellij-java-google-style.xml`
