@@ -19,6 +19,10 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import url.shortener.server.component.url.UrlComponent;
+import url.shortener.server.config.openapi.CreateAlias;
+import url.shortener.server.config.openapi.DeleteUrl;
+import url.shortener.server.config.openapi.GetOriginalUrl;
+import url.shortener.server.config.openapi.GetUserUrls;
 import url.shortener.server.dto.UrlCreateDto;
 import url.shortener.server.dto.UrlsListDto;
 import url.shortener.server.service.UrlService;
@@ -30,6 +34,7 @@ public class UrlController {
   private final UrlComponent urlComponent;
   private final UrlService urlService;
 
+  @CreateAlias
   @Secured(SecurityRule.IS_AUTHENTICATED)
   @Post(value = "urls/shorten", consumes = APPLICATION_JSON)
   public HttpResponse<Void> createUrlAlias(
@@ -43,12 +48,14 @@ public class UrlController {
     );
   }
 
+  @GetUserUrls
   @Secured(SecurityRule.IS_AUTHENTICATED)
   @Get(value = "urls", produces = APPLICATION_JSON)
   public UrlsListDto getAllUserUrls(Principal principal) {
     return urlService.getUserUrls(principal.getName());
   }
 
+  @DeleteUrl
   @Secured(SecurityRule.IS_AUTHENTICATED)
   @Delete("urls/{alias}")
   public HttpResponse<Void> deleteUrl(
@@ -59,6 +66,7 @@ public class UrlController {
     return HttpResponse.status(HttpStatus.NO_CONTENT);
   }
 
+  @GetOriginalUrl
   @PermitAll
   @Get("r/{alias}")
   public HttpResponse<Void> redirect(

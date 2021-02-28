@@ -1,12 +1,12 @@
 package url.shortener.server.repository.impl;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +22,14 @@ public class UrlRepositoryDummyImpl implements UrlRepository {
 
   @Override
   public List<ShortenedUrl> findAll(Set<String> aliases) {
-    return Collections.emptyList();
+    return database.entrySet()
+        .stream()
+        .filter(entry -> aliases.contains(entry.getKey()))
+        .map(entry -> new ShortenedUrl()
+            .setAlias(entry.getKey())
+            .setOriginalUrl(URI.create(entry.getValue()))
+        )
+        .collect(Collectors.toList());
   }
 
   @Override
