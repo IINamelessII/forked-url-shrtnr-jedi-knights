@@ -13,6 +13,11 @@
 The [design document](https://docs.google.com/document/d/1ZcmFHWav7F9b_4gvjhD-IwysB07OhW4KYkA5R5uDIZo/edit) that
 describes architecture and implementation details of this project.
 
+### Swagger links
+
+* [Swagger link](http://localhost:8080/swagger/shorten-url-service.yml)
+* [Swagger UI](http://localhost:8080/swagger-ui/index.html)
+
 ## Environment prerequisites
 
 ### Java
