@@ -34,3 +34,9 @@ jackson:
 
 url:
   proposal-count: 5
+
+encryption:
+  count-of-iterations: 65536
+  key-length: 128
+  salt: changeMe
+  hashing.dummy.enabled: false
