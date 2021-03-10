@@ -6,7 +6,7 @@ import url.shortener.server.entity.UserUrl;
 
 public interface UserUrlRepository {
 
-  List<UserUrl> findAll(String userId);
+  List<String> findAll(String userId);
 
   boolean save(UserUrl userUrl);
 

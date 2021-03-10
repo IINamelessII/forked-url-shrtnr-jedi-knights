@@ -41,3 +41,5 @@ local.properties
 .gradletasknamecache
 
 .DS_Store
+
+BigTable
