@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
 @Disabled("Disabled to do not disturb file system each time when build project")
 class MultiValueTableImplTest {
 
-  private static final String TABLE_NAME = "test";
+  private static final String TABLE_NAME = "multivaluetest";
   private static final int BUCKETS_NUMBER = 3;
   private static final int KEY_LENGTH = 5;
 
@@ -58,7 +58,7 @@ class MultiValueTableImplTest {
 
     assertThat(saveFirstResult).isTrue();
     assertThat(saveSecondResult).isTrue();
-    assertThat(searchResult).containsExactlyInAnyOrder(testValue1, testValue2);
+    assertThat(searchResult).contains(testValue1, testValue2);
   }
 
   @Test

@@ -70,7 +70,7 @@ public class BigTableImpl implements BigTable {
   }
 
   private int getBucketNumber(String key) {
-    return key.hashCode() % bucketsNumber;
+    return Math.abs(key.hashCode()) % bucketsNumber;
   }
 
   File getDatabaseRoot() {

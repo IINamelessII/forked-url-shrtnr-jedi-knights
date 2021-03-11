@@ -250,29 +250,24 @@ class MultiValueBucket implements MultiValueTable {
           List<Long> indexes = new ArrayList<>();
           indexes.add(indexAccess.readLong());
           long tmpPosition = center - valueLength;
+
           if (tmpPosition > 0) {
             indexAccess.seek(tmpPosition);
-            indexAccess.read(buffer);
-            while (Arrays.compare(buffer, keyBytes) == 0) {
-              indexes.add(indexAccess.readLong());
-              tmpPosition -= valueLength;
-              if (tmpPosition < 0) {
-                break;
-              }
-              indexAccess.seek(tmpPosition);
-              indexAccess.read(buffer);
-            }
+          }
+          while (tmpPosition > 0
+              && (indexAccess.read(buffer) != -1)
+              && Arrays.compare(buffer, keyBytes) == 0
+          ) {
+            indexes.add(indexAccess.readLong());
+            indexAccess.seek(tmpPosition);
+            tmpPosition -= valueLength;
           }
           tmpPosition = center + valueLength;
           indexAccess.seek(tmpPosition);
-          indexAccess.read(buffer);
-          while (Arrays.compare(buffer, keyBytes) == 0) {
+          while ((indexAccess.read(buffer) != -1) && Arrays.compare(buffer, keyBytes) == 0) {
             indexes.add(indexAccess.readLong());
             tmpPosition += valueLength;
             indexAccess.seek(tmpPosition);
-            if (indexAccess.read(buffer) == -1) {
-              break;
-            }
           }
           return mapToValue(indexes);
         }
@@ -345,27 +340,22 @@ class MultiValueBucket implements MultiValueTable {
           long tmpPosition = center - valueLength;
           if (tmpPosition > 0) {
             indexAccess.seek(tmpPosition);
-            indexAccess.read(buffer);
-            while (Arrays.compare(buffer, keyBytes) == 0) {
-              indexToPosition.put(tmpPosition, indexAccess.readLong());
-              tmpPosition -= valueLength;
-              if (tmpPosition < 0) {
-                break;
-              }
-              indexAccess.seek(tmpPosition);
-              indexAccess.read(buffer);
-            }
           }
+          while (tmpPosition > 0
+              && (indexAccess.read(buffer) != -1)
+              && Arrays.compare(buffer, keyBytes) == 0
+          ) {
+            indexToPosition.put(tmpPosition, indexAccess.readLong());
+            indexAccess.seek(tmpPosition);
+            tmpPosition -= valueLength;
+          }
+
           tmpPosition = center + valueLength;
           indexAccess.seek(tmpPosition);
-          indexAccess.read(buffer);
-          while (Arrays.compare(buffer, keyBytes) == 0) {
+          while ((indexAccess.read(buffer) != -1) && Arrays.compare(buffer, keyBytes) == 0) {
             indexToPosition.put(tmpPosition, indexAccess.readLong());
             tmpPosition += valueLength;
             indexAccess.seek(tmpPosition);
-            if (indexAccess.read(buffer) == -1) {
-              break;
-            }
           }
           long deletePosition = deleteWithValue(indexToPosition, value);
           if (deletePosition == -1) {
