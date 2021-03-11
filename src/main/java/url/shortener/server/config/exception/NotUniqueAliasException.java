@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class NotUniqueIdException extends RuntimeException {
+public class NotUniqueAliasException extends RuntimeException {
 
-  private List<String> availableIds;
+  private List<String> suggestion;
 }

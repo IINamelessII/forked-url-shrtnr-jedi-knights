@@ -41,3 +41,7 @@ encryption:
   salt: changeMe
   hashing.dummy.enabled: true
 
+synonyms:
+  api:
+    host: https://api.datamuse.com
+

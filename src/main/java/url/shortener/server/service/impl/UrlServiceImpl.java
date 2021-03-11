@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import org.apache.commons.lang3.StringUtils;
 import url.shortener.server.component.synonym.SynonymsSearchComponent;
-import url.shortener.server.config.exception.NotUniqueIdException;
+import url.shortener.server.config.exception.NotUniqueAliasException;
 import url.shortener.server.config.properties.UrlProperties;
 import url.shortener.server.dto.UrlCreateDto;
 import url.shortener.server.dto.UrlsListDto;
@@ -85,7 +85,7 @@ public class UrlServiceImpl implements UrlService {
       );
       return;
     }
-    throw new NotUniqueIdException(
+    throw new NotUniqueAliasException(
         generateProposal(alias)
     );
   }
