@@ -64,7 +64,7 @@ public class MultiValueTableImpl implements MultiValueTable {
   }
 
   private int getBucketsNumber(String key) {
-    return key.hashCode() % bucketsNumber;
+    return Math.abs(key.hashCode()) % bucketsNumber;
   }
 
   File getDatabaseRoot() {
