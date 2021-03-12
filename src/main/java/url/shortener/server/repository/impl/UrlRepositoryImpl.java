@@ -2,11 +2,15 @@ package url.shortener.server.repository.impl;
 
 import static url.shortener.server.service.impl.UrlServiceImpl.MAX_KEY_LENGTH;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -14,6 +18,8 @@ import javax.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import url.shortener.server.bigtable.BigTable;
+import url.shortener.server.config.properties.CacheProperties;
+import url.shortener.server.config.properties.CacheProperties.CacheParams;
 import url.shortener.server.entity.ShortenedUrl;
 import url.shortener.server.repository.UrlRepository;
 
@@ -24,10 +30,30 @@ public class UrlRepositoryImpl implements UrlRepository {
   private static final int AVAILABLE_KEY_TRIES_MAX_ATTEMPTS = 20;
 
   private final BigTable urlTable;
+  private final LoadingCache<String, String> cache;
 
 
-  public UrlRepositoryImpl(@Named("urlTable") BigTable urlTable) {
+  public UrlRepositoryImpl(
+      @Named("urlTable") BigTable urlTable,
+      CacheProperties cacheProperties
+  ) {
     this.urlTable = urlTable;
+    this.cache = initCache(urlTable, cacheProperties.getUrl());
+  }
+
+  private LoadingCache<String, String> initCache(
+      BigTable urlTable,
+      CacheParams cacheProperties
+  ) {
+    return CacheBuilder.newBuilder()
+        .expireAfterAccess(cacheProperties.getDuration())
+        .maximumSize(cacheProperties.getMaxSize())
+        .build(new CacheLoader<>() {
+          @Override
+          public String load(String key) {
+            return urlTable.findByKey(key).orElseThrow();
+          }
+        });
   }
 
 
@@ -50,8 +76,11 @@ public class UrlRepositoryImpl implements UrlRepository {
 
   @Override
   public Optional<ShortenedUrl> findById(@NotNull String alias) {
-    return urlTable.findByKey(alias)
-        .map(value -> toUrl(alias, value));
+    try {
+      return Optional.of(toUrl(alias, cache.get(alias)));
+    } catch (ExecutionException e) {
+      return Optional.empty();
+    }
   }
 
   @Override
@@ -62,6 +91,7 @@ public class UrlRepositoryImpl implements UrlRepository {
   @Override
   public void deleteById(@NotNull String alias) {
     urlTable.deleteByKey(alias);
+    cache.invalidate(alias);
   }
 
   @Override
