@@ -3,18 +3,20 @@ package url.shortener.server.component.token.impl;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.validation.constraints.NotBlank;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import url.shortener.server.bigtable.BigTable;
 import url.shortener.server.component.token.TokenComponent;
 import url.shortener.server.config.properties.CacheProperties;
 import url.shortener.server.config.properties.CacheProperties.CacheParams;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.validation.constraints.NotBlank;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 @Slf4j
 @Singleton
@@ -65,7 +67,7 @@ public class TokenComponentImpl implements TokenComponent {
     }
     try {
       return Optional.of(tokenCache.get(token));
-    } catch (ExecutionException e) {
+    } catch (ExecutionException | UncheckedExecutionException e) {
       return Optional.empty();
     }
   }

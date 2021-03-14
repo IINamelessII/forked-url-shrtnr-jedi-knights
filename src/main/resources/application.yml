@@ -53,3 +53,25 @@ cache:
     duration: PT20M
     max-size: 250
 
+repository:
+  token:
+    table-name: token
+    bucket-number: 5
+    key-length: 40
+  url:
+    table-name: url
+    bucket-number: 5
+    key-length: 20
+  user:
+    table-name: userTable
+    bucket-number: 2
+    key-length: 64
+  userUrl:
+    table-name: userUrl
+    bucket-number: 5
+    key-length: 64
+
+service:
+  host: localhost:8080
+  schema: http
+

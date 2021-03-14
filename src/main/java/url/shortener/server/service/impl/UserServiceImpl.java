@@ -1,19 +1,22 @@
 package url.shortener.server.service.impl;
 
-import java.util.Optional;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import io.micronaut.http.HttpStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import url.shortener.server.component.encryption.HashingComponent;
 import url.shortener.server.component.token.TokenComponent;
+import url.shortener.server.config.exception.BusinessException;
 import url.shortener.server.dto.TokenDto;
 import url.shortener.server.dto.UserCreateDto;
 import url.shortener.server.entity.User;
 import url.shortener.server.mapper.UserMapper;
 import url.shortener.server.repository.UserRepository;
 import url.shortener.server.service.UserService;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.util.Optional;
 
 @Slf4j
 @Singleton
@@ -29,7 +32,7 @@ public class UserServiceImpl implements UserService {
   public void createUser(UserCreateDto userCreateDto) {
 
     if (userRepository.existsById(userCreateDto.getEmail())) {
-      throw new RuntimeException("User with such email already exists 409");
+      throw new BusinessException("User with such email already exists", HttpStatus.BAD_REQUEST);
     }
     User userToSave = userMapper.to(userCreateDto)
         .setPassword(hashingComponent.hash(userCreateDto.getPassword()));
@@ -44,7 +47,7 @@ public class UserServiceImpl implements UserService {
         .filter(user -> hashingComponent.match(user.getPassword(), userCreateDto.getPassword()))
         .map(user -> tokenComponent.createToken(user.getEmail()))
         .map(token -> new TokenDto().setToken(token))
-        .orElseThrow(() -> new RuntimeException("Unauthorized 401"));
+        .orElseThrow(() -> new BusinessException("User is unauthorized", HttpStatus.UNAUTHORIZED));
   }
 
   @Override
@@ -61,8 +64,7 @@ public class UserServiceImpl implements UserService {
 
   private void checkTokenNotBlank(String authToken) {
     if (StringUtils.isBlank(authToken)) {
-      //TODO improve exception handling
-      throw new RuntimeException("Unauthorized 401");
+      throw new BusinessException("Token is missing", HttpStatus.UNAUTHORIZED);
     }
   }
 }

@@ -1,10 +1,21 @@
 package url.shortener.server.repository.impl;
 
-import static url.shortener.server.service.impl.UrlServiceImpl.MAX_KEY_LENGTH;
-
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
+import url.shortener.server.bigtable.BigTable;
+import url.shortener.server.config.properties.CacheProperties;
+import url.shortener.server.config.properties.CacheProperties.CacheParams;
+import url.shortener.server.config.properties.RepositoryProperties;
+import url.shortener.server.entity.ShortenedUrl;
+import url.shortener.server.repository.UrlRepository;
+
+import javax.inject.Named;
+import javax.inject.Singleton;
+import javax.validation.constraints.NotNull;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,16 +23,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.validation.constraints.NotNull;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import url.shortener.server.bigtable.BigTable;
-import url.shortener.server.config.properties.CacheProperties;
-import url.shortener.server.config.properties.CacheProperties.CacheParams;
-import url.shortener.server.entity.ShortenedUrl;
-import url.shortener.server.repository.UrlRepository;
+
+import static url.shortener.server.service.impl.UrlServiceImpl.MAX_KEY_LENGTH;
 
 @Slf4j
 @Singleton
@@ -35,7 +38,8 @@ public class UrlRepositoryImpl implements UrlRepository {
 
   public UrlRepositoryImpl(
       @Named("urlTable") BigTable urlTable,
-      CacheProperties cacheProperties
+      CacheProperties cacheProperties,
+      RepositoryProperties repositoryProperties
   ) {
     this.urlTable = urlTable;
     this.cache = initCache(urlTable, cacheProperties.getUrl());
@@ -78,7 +82,7 @@ public class UrlRepositoryImpl implements UrlRepository {
   public Optional<ShortenedUrl> findById(@NotNull String alias) {
     try {
       return Optional.of(toUrl(alias, cache.get(alias)));
-    } catch (ExecutionException e) {
+    } catch (ExecutionException | UncheckedExecutionException e) {
       return Optional.empty();
     }
   }
