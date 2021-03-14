@@ -17,6 +17,91 @@ describes architecture and implementation details of this project.
 
 * [Swagger link](http://localhost:8080/swagger/shorten-url-service.yml)
 * [Swagger UI](http://localhost:8080/swagger-ui/index.html)
+### Main scenario endpoints
+
+1. Sign up
+
+```shell
+curl -X 'POST' \
+  'http://localhost:8080/users/signup' \
+  -H 'accept: */*' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "email": "aaa@example.com",
+  "password": "passw000rd"
+}'
+```
+
+2. Login
+
+```shell
+curl -X 'POST' \
+  'http://localhost:8080/users/signin' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "email": "aaa@example.com",
+  "password": "passw000rd"
+}'
+```
+Example output
+
+```shell
+{
+    "token": "<token>"
+}
+```
+
+3. Create shorten URL
+
+```shell
+curl -X 'POST' \
+  'http://localhost:8080/urls/shorten' \
+  -H 'accept: application/json' \
+  -H 'Authorization: <TOKEN FROM THE LOGIN RESPONSE>' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "alias": "palevo",
+  "uri": "https://github.com/future-stardust/url-shrtnr-palevo"
+}'
+```
+
+4. Redirect
+
+```shell
+curl -X 'GET' \
+  'http://localhost:8080/r/palevo' \
+  -H 'accept: application/json'
+```
+
+5. List of user’s shortened links
+
+```shell
+curl -X 'GET' \
+  'http://localhost:8080/urls' \
+  -H 'accept: application/json' \
+  -H 'Authorization:  <TOKEN FROM THE LOGIN RESPONSE>'
+```
+Example output
+
+```shell
+{
+  "urls": [
+    {
+      "alias": "palevo",
+      "original_url": "https://github.com/future-stardust/url-shrtnr-palevo"
+    }
+  ]
+}
+```
+6. Delete shortened link
+
+```shell
+curl -X 'DELETE' \
+  'http://localhost:8080/urls/palevo' \
+  -H 'accept: application/json' \
+  -H 'Authorization:  <TOKEN FROM THE LOGIN RESPONSE>'
+```
 
 ## Environment prerequisites
 
@@ -24,7 +109,6 @@ describes architecture and implementation details of this project.
 This is a Java project, so you will need an environment with installed [JDK] 15. For installation,
 you could use:
 - [sdkman] on Linux/MacOS
-- [AdoptOpenJDK] on Windows
 
 ### IDE
 As IDE use [IntelliJ Idea Edu].
