@@ -4,6 +4,7 @@ import random
 
 from locust import HttpUser, task, between
 RNG_STR_LENGHT = (5, 16)
+RNG_PASSWORD_LENGHT = (8, 26)
 
 
 class QuickstartUser(HttpUser):
@@ -35,8 +36,16 @@ class QuickstartUser(HttpUser):
         token = self.select_token()
         if not token:
             return
+        
+        url = get_rnd_url()
+        
+        json = {
+            "uri": url
+        }
 
-        url = f'https://google.com/search?q={rng_str()}'
+        if random.random() < .3:
+            json['alias'] = rng_str()[:10]
+
         self.client.post(
             "/urls/shorten",
             headers={
@@ -72,7 +81,7 @@ class QuickstartUser(HttpUser):
     @task(2)
     def signup(self):
         email = f'{rng_str()}@example.com'
-        password = f'{rng_str()}1'
+        password = rng_passwd()
 
         self.client.post("/users/signup", json={
             "email": email,
@@ -133,3 +142,14 @@ def rng_str():
         random.choice(string.ascii_letters)
         for _ in range(random.randint(*RNG_STR_LENGHT))
     )
+
+def rng_passwd():
+    return ''.join(
+        random.choice(string.ascii_letters + string.digits)
+        for _ in range(random.randint(*RNG_PASSWORD_LENGHT))
+    )
+
+
+
+def get_rnd_url():
+    return f'https://jsonplaceholder.typicode.com/photos/{random.randint(1, 5000)}'
