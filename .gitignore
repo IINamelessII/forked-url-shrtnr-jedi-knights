@@ -43,3 +43,5 @@ local.properties
 .DS_Store
 
 BigTable
+.env
+*/__pycache__
