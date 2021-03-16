@@ -45,3 +45,8 @@ local.properties
 BigTable
 .env
 */__pycache__
+
+
+Pipfile
+Pipfile.lock
+
