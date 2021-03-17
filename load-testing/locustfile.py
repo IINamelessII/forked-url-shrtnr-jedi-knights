@@ -28,7 +28,8 @@ class QuickstartUser(HttpUser):
 
         alias = random.choice(list(self.store['aliases_all']))
         self.client.get(
-            f'/r/{alias}'
+            f'/r/{alias}',
+            name="/r/{alias}"
         )
 
     @task(3)
@@ -70,6 +71,7 @@ class QuickstartUser(HttpUser):
 
         self.client.delete(
             f'/urls/{alias}',
+            name="/urls/{alias}",
             headers={
                 'Authorization': token,
             },
@@ -83,15 +85,16 @@ class QuickstartUser(HttpUser):
         email = f'{rng_str()}@example.com'
         password = rng_passwd()
 
-        self.client.post("/users/signup", json={
+        response = self.client.post("/users/signup", json={
             "email": email,
             "password": password,
         })
 
-        self.store['users'].append({
-            'email': email,
-            'password': password,
-        })
+        if response.ok:
+            self.store['users'].append({
+                'email': email,
+                'password': password,
+            })
 
     @task(3)
     def login(self):
@@ -105,9 +108,11 @@ class QuickstartUser(HttpUser):
             'email': user['email'],
             'password': user['password'],
         })
-        token = response.json()['token']
-        self.store['tokens'][user['email']] = token
-        self.store['aliases'].setdefault(token, [])
+
+        if response.ok:
+            token = response.json()['token']
+            self.store['tokens'][user['email']] = token
+            self.store['aliases'].setdefault(token, [])
 
     @task(4)
     def get_urls(self):
