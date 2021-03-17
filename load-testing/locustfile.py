@@ -2,13 +2,21 @@ import logging
 import string
 import random
 
-from locust import HttpUser, task, between
+from locust import HttpUser, task, constant, between
+
+
 RNG_STR_LENGHT = (5, 16)
 RNG_PASSWORD_LENGHT = (8, 26)
 
 
-class QuickstartUser(HttpUser):
-    wait_time = between(1, 2.5)
+class UrlShortenerUser(HttpUser):
+    """
+    Class, based on HttpUser, for load testing Url Shortener application. 
+    Contains data store and set of tasks responsible for specific endpoints 
+    (/users/signup, /users/signin, /urls etc).
+    """
+    wait_time = constant(1)
+    # wait_time = between(1, 2.5)
 
     store = {
         # all existing alias - for redirect
@@ -23,6 +31,12 @@ class QuickstartUser(HttpUser):
 
     @task(10)
     def redirect(self):
+        """
+        Task related to /r/{alias} entrypoint. 
+        
+        Sends GET request to random alias from set of aliases (store['aliases_all'])
+        """
+
         if not self.store['aliases_all']:
             return
 
@@ -34,18 +48,23 @@ class QuickstartUser(HttpUser):
 
     @task(3)
     def shorten(self):
+        """
+        Task related to /urls/shorten entrypoint.
+
+        Sends POST request with json body { uri: required, alias: optional }.
+        """
         token = self.select_token()
         if not token:
             return
-        
-        url = get_rnd_url()
-        
+
+        url = get_random_url()
+
         json = {
             "uri": url
         }
 
         if random.random() < .3:
-            json['alias'] = rng_str()[:10]
+            json['alias'] = get_random_string()[:10]
 
         self.client.post(
             "/urls/shorten",
@@ -59,6 +78,14 @@ class QuickstartUser(HttpUser):
 
     @task
     def delete(self):
+        """
+        Task related to /urts/{alias} entrypoint.
+
+        Sends DELETE reqeust to some random alias of some random user.
+        
+        Also deletes irrelevant data from user-aliases dict (store['aliases'])
+        and from general set of aliases (store['aliases_all'])
+        """
         token = self.select_token()
         if not token:
             return
@@ -82,22 +109,38 @@ class QuickstartUser(HttpUser):
 
     @task(2)
     def signup(self):
-        email = f'{rng_str()}@example.com'
-        password = rng_passwd()
+        """
+        Task related to /users/signup entrypoint.
+
+        Sends POST request with randomly generated user data in json body. 
+        If response is successful, saves this data to list of users (store['users'])
+        """
+        email = f'{get_random_string()}@example.com'
+        password = get_random_password()
 
         response = self.client.post("/users/signup", json={
             "email": email,
             "password": password,
         })
 
-        if response.ok:
-            self.store['users'].append({
-                'email': email,
-                'password': password,
-            })
+        if not response.ok:
+            logging.info(
+                f"Sign Up failed for provided credentials: {email}/{password}")
+            return
+
+        self.store['users'].append({
+            'email': email,
+            'password': password,
+        })
 
     @task(3)
-    def login(self):
+    def signin(self):
+        """
+        Task related to /users/signin entrypoint.
+
+        Sends POST request with random credentials taken from store['users'].
+        If response is successful, saves token in email-token dict (store['tokens'])
+        """
 
         if not self.store['users']:
             return
@@ -109,13 +152,23 @@ class QuickstartUser(HttpUser):
             'password': user['password'],
         })
 
-        if response.ok:
-            token = response.json()['token']
-            self.store['tokens'][user['email']] = token
-            self.store['aliases'].setdefault(token, [])
+        if not response.ok:
+            logging.info(f"Sing In failed for user {user['email']}")
+            return
+
+        token = response.json()['token']
+        self.store['tokens'][user['email']] = token
+        self.store['aliases'].setdefault(token, [])
 
     @task(4)
     def get_urls(self):
+        """
+        Task related to /urls entrypoint.
+
+        Sends GET request by specific user to get its url list.
+        If response if successful, updates user-aliases dict (store['aliases'])
+        and general set of aliases (store['aliases_all'])
+        """
 
         token = self.select_token()
         if not token:
@@ -135,6 +188,10 @@ class QuickstartUser(HttpUser):
         self.store['aliases_all'] |= set(aliases)
 
     def select_token(self):
+        """
+        Helper method for selecting random token from store.
+        """
+
         if not self.store['tokens']:
             return False
 
@@ -142,19 +199,19 @@ class QuickstartUser(HttpUser):
         return self.store['tokens'][_email]
 
 
-def rng_str():
+def get_random_string():
     return ''.join(
         random.choice(string.ascii_letters)
         for _ in range(random.randint(*RNG_STR_LENGHT))
     )
 
-def rng_passwd():
+
+def get_random_password():
     return ''.join(
         random.choice(string.ascii_letters + string.digits)
         for _ in range(random.randint(*RNG_PASSWORD_LENGHT))
     )
 
 
-
-def get_rnd_url():
+def get_random_url():
     return f'https://jsonplaceholder.typicode.com/photos/{random.randint(1, 5000)}'
