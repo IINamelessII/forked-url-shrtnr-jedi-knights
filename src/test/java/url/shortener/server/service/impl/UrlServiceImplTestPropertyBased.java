@@ -2,6 +2,7 @@ package url.shortener.server.service.impl;
 
 import static org.quicktheories.QuickTheory.qt;
 import static org.quicktheories.generators.SourceDSL.strings;
+import static org.quicktheories.generators.SourceDSL.integers;
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import java.io.File;
@@ -17,6 +18,7 @@ import url.shortener.server.config.exception.BusinessException;
 import url.shortener.server.config.exception.NotUniqueAliasException;
 import url.shortener.server.dto.UrlCreateDto;
 import url.shortener.server.dto.UserCreateDto;
+
 
 @MicronautTest
 public class UrlServiceImplTestPropertyBased {
@@ -114,6 +116,35 @@ public class UrlServiceImplTestPropertyBased {
             "[URI SYNTAX EXCEPTION] Message: \"%s\"%n",
             uriSyntaxException.getMessage()
         ); */
+        return false;
+      };
+
+      return true;
+    });
+  }
+
+  @Test
+  void deleteUserUrlPBT() {
+    final String dummyId = "0";
+
+    qt().forAll(
+      strings().basicLatinAlphabet().ofLengthBetween(0, 10)
+      , strings().basicLatinAlphabet().ofLengthBetween(0, 10)
+    ).check((alias, dummyURIs) -> {
+      try {
+        UrlCreateDto urlCreateDto = new UrlCreateDto()
+          .setUri(new URI(dummyURIs))
+          .setAlias(alias);
+
+        urlServiceImpl.createUrl(String.valueOf(dummyId), urlCreateDto);
+
+        try {
+          urlServiceImpl.deleteUserUrl(String.valueOf(dummyId), alias);
+
+        } catch (BusinessException businessException) {
+          return false;
+        }
+      } catch (URISyntaxException uriSyntaxException) {
         return false;
       };
 
