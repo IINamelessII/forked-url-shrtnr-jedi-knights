@@ -93,7 +93,7 @@ public class UrlServiceImplTestPropertyBased {
           try {
             final String dummyURIFromDB = urlServiceImpl.getOriginalUrl(alias).toString();
 
-            if (dummyURIFromDB.equals(dummyURI)) {
+            if (!dummyURIFromDB.equals(dummyURI)) {
               /* System.out.printf(
                   "[URI EQUALITY] URI \"%s\" is not equal to \"%s\" for alias \"%s\"%n",
                   dummyURIFromDB,
