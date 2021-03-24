@@ -2,7 +2,6 @@ package url.shortener.server.service.impl;
 
 import static org.quicktheories.QuickTheory.qt;
 import static org.quicktheories.generators.SourceDSL.strings;
-import static org.quicktheories.generators.SourceDSL.integers;
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import java.io.File;
@@ -72,7 +71,7 @@ public class UrlServiceImplTestPropertyBased {
             uriSyntaxException.getMessage()
         ); */
         return false;
-      };
+      }
 
       return true;
     });
@@ -117,7 +116,7 @@ public class UrlServiceImplTestPropertyBased {
             uriSyntaxException.getMessage()
         ); */
         return false;
-      };
+      }
 
       return true;
     });
@@ -146,7 +145,7 @@ public class UrlServiceImplTestPropertyBased {
         }
       } catch (URISyntaxException uriSyntaxException) {
         return false;
-      };
+      }
 
       return true;
     });
