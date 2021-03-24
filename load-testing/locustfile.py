@@ -6,7 +6,7 @@ import string
 
 from locust import HttpUser, task, constant
 
-from settings import LOAD_BALANCES, QPS
+from settings import LOAD_BALANCES
 
 RNG_STR_LENGHT = (5, 16)
 RNG_PASSWORD_LENGHT = (8, 26)
@@ -19,7 +19,7 @@ class UrlShortenerUser(HttpUser):
     (/users/signup, /users/signin, /urls etc).
     """
 
-    wait_time = constant(1 / (QPS or 1))
+    wait_time = constant(1)
 
     store = {
         # all existing alias - for redirect

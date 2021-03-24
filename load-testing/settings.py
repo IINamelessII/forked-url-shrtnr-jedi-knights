@@ -8,5 +8,3 @@ LOAD_BALANCES = {
     'delete': 2,
     'get_urls': 5,
 }
-
-QPS = 5
