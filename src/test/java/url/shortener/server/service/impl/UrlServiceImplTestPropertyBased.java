@@ -136,10 +136,10 @@ public class UrlServiceImplTestPropertyBased {
           .setUri(new URI(dummyURIs))
           .setAlias(alias);
 
-        urlServiceImpl.createUrl(String.valueOf(dummyId), urlCreateDto);
+        urlServiceImpl.createUrl(dummyId, urlCreateDto);
 
         try {
-          urlServiceImpl.deleteUserUrl(String.valueOf(dummyId), alias);
+          urlServiceImpl.deleteUserUrl(dummyId, alias);
 
         } catch (BusinessException businessException) {
           return false;
