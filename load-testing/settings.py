@@ -1,10 +1,12 @@
 """Settings for Load Testing"""
 
 LOAD_BALANCES = {
-    'redirect': 70,
-    'shorten': 10,
+    'redirect': 80,
+    'shorten': 5,
     'signup': 1,
     'signin': 7,
     'delete': 2,
-    'get_urls': 10,
+    'get_urls': 5,
 }
+
+QPS = 5
