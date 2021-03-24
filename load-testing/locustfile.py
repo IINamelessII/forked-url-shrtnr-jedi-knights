@@ -1,9 +1,12 @@
+"""Load Testing Profile for Locust"""
+
 import logging
-import string
 import random
+import string
 
-from locust import HttpUser, task, constant, between
+from locust import HttpUser, task, constant
 
+from .settings import LOAD_BALANCES
 
 RNG_STR_LENGHT = (5, 16)
 RNG_PASSWORD_LENGHT = (8, 26)
@@ -15,8 +18,8 @@ class UrlShortenerUser(HttpUser):
     Contains data store and set of tasks responsible for specific endpoints 
     (/users/signup, /users/signin, /urls etc).
     """
+
     wait_time = constant(1)
-    # wait_time = between(1, 2.5)
 
     store = {
         # all existing alias - for redirect
@@ -29,7 +32,7 @@ class UrlShortenerUser(HttpUser):
         'aliases': {},
     }
 
-    @task(10)
+    @task(LOAD_BALANCES['redirect'])
     def redirect(self):
         """
         Task related to /r/{alias} entrypoint. 
@@ -46,7 +49,7 @@ class UrlShortenerUser(HttpUser):
             name="/r/{alias}"
         )
 
-    @task(3)
+    @task(LOAD_BALANCES['shorten'])
     def shorten(self):
         """
         Task related to /urls/shorten entrypoint.
@@ -76,7 +79,7 @@ class UrlShortenerUser(HttpUser):
             }
         )
 
-    @task
+    @task(LOAD_BALANCES['delete'])
     def delete(self):
         """
         Task related to /urts/{alias} entrypoint.
@@ -107,7 +110,7 @@ class UrlShortenerUser(HttpUser):
         self.store['aliases'][token].remove(alias)
         self.store['aliases_all'].remove(alias)
 
-    @task(2)
+    @task(LOAD_BALANCES['signup'])
     def signup(self):
         """
         Task related to /users/signup entrypoint.
@@ -133,7 +136,7 @@ class UrlShortenerUser(HttpUser):
             'password': password,
         })
 
-    @task(3)
+    @task(LOAD_BALANCES['signin'])
     def signin(self):
         """
         Task related to /users/signin entrypoint.
@@ -160,7 +163,7 @@ class UrlShortenerUser(HttpUser):
         self.store['tokens'][user['email']] = token
         self.store['aliases'].setdefault(token, [])
 
-    @task(4)
+    @task(LOAD_BALANCES['get_urls'])
     def get_urls(self):
         """
         Task related to /urls entrypoint.
