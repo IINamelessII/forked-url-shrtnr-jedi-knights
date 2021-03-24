@@ -21,7 +21,7 @@ import java.util.Optional;
 @Slf4j
 @Singleton
 @RequiredArgsConstructor(onConstructor = @__(@Inject))
-public class UserServiceImpl implements UserService {
+  public class UserServiceImpl implements UserService {
 
   private final UserRepository userRepository;
   private final UserMapper userMapper;
