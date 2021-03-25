@@ -23,7 +23,7 @@ if __name__ == '__main__':
         # run load testing
         os.system(
             f'locust -f locustfile.py --headless -u {qps} -r {qps} '
-            f'--run-time 15s --csv stats/{qps} --only-summary'
+            f'--run-time 30s --csv stats/{qps} --only-summary'
         )
 
         # make correct file
@@ -31,8 +31,8 @@ if __name__ == '__main__':
             writter = csv.writer(out)
             rows = tuple(csv.reader(inp))
             desired = {0, len(rows) - 1}
-            for ids, row in enumerate(rows):
-                if idx in desired
+            for idx, row in enumerate(rows):
+                if idx in desired:
                     writter.writerow(row)
 
         # remove redundant files
