@@ -8,7 +8,7 @@ from pathlib import Path
 if __name__ == '__main__':
 
     # cleanup before work
-    for fph in Path('./data').glob('*'):
+    for fph in Path('stats').glob('*'):
         fph.unlink()
 
     # increase QPS iteratively
