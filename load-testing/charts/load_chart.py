@@ -4,38 +4,16 @@ import os
 import re
 from pathlib import Path
 
-
-def convert_to_int(string: str):
-    """
-    Converts Locust statistics values to integer
-    """
-    return 0 if string == 'N/A' else int(string)
+from utils import convert_to_int, extract_csv
 
 
 if __name__ == '__main__':
 
-    # Parse all stats files and convert data to list of dicts
-    BASE_DIR = Path(__file__).parent.absolute()
-    STATS_PATH = f'{BASE_DIR}/stats/'
+    BASE_DIR = Path(__file__).parent.parent.absolute()
+    STATS_PATH = f'{BASE_DIR}/stats'
+    IMG_CHARTS_PATH = f'{BASE_DIR}/charts/img'
 
-    raw_stats_list = []
-
-    for filename in os.listdir(STATS_PATH):
-        if re.match(".*.csv$", filename):
-            with open(STATS_PATH + filename) as csv_file:
-                reader = csv.DictReader(csv_file)
-
-                dictobj = dict()
-                try:
-                    while True:
-                        dictobj = next(reader)
-                except StopIteration:
-                    pass
-                finally:
-                    if dictobj:
-                        # dictobj['Users/s'] = int(Path(filename).stem)
-                        raw_stats_list.append(dictobj)
-                    del reader
+    raw_stats_list = extract_csv(STATS_PATH)
 
     # Convert general data to dict { <latency>: (<QPS>, <Response Time>) }
     latency_stats = {
@@ -53,7 +31,7 @@ if __name__ == '__main__':
 
     # Build line charts for each percentile
     fig, axs = plt.subplots(3)
-    fig.suptitle('Load-testing results')
+    fig.suptitle('Load Testing')
 
     fig.add_subplot(111, frameon=False)
     plt.tick_params(labelcolor='none', top=False,
@@ -70,4 +48,4 @@ if __name__ == '__main__':
         axs[idx].grid()
 
     fig.tight_layout()
-    plt.show()
+    plt.savefig(f'{IMG_CHARTS_PATH}/load_testing_chart.png')
