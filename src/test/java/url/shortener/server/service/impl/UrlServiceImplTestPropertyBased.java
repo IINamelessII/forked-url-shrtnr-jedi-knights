@@ -63,7 +63,7 @@ public class UrlServiceImplTestPropertyBased {
     int createUrlSuccessCounter = 0;
 
     for (int i = 0; i < REPEATS; i++) {
-      String mockAlias = mock.strings().size(ints().range(1, 10)).get();
+      String mockAlias = mock.strings().size(ints().range(5, 10)).get();
 
       try {
         UrlCreateDto urlDTO = new UrlCreateDto()
@@ -92,7 +92,7 @@ public class UrlServiceImplTestPropertyBased {
       createUrlSuccessCounter++;
     }
 
-    getStatisticsOnPBT("getOriginalUrl", createUrlSuccessCounter);
+    getStatisticsOnPBT("createUrlPBT", createUrlSuccessCounter);
 
     Assertions.assertTrue(isSuccessfulPBT);
   }
@@ -104,7 +104,7 @@ public class UrlServiceImplTestPropertyBased {
     int getOriginalUrlSuccessCounter = 0;
 
     for (int i = 0; i < REPEATS; i++) {
-      String mockAlias = mock.strings().size(ints().range(1, 10)).get();
+      String mockAlias = mock.strings().size(ints().range(5, 10)).get();
 
       try {
         UrlCreateDto urlDTO = new UrlCreateDto().setUri(new URI(DUMMY_URI)).setAlias(mockAlias);
