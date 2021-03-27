@@ -1,22 +1,19 @@
 package url.shortener.server.service.impl;
 
-import static org.quicktheories.QuickTheory.qt;
-import static org.quicktheories.generators.SourceDSL.strings;
+import static net.andreinc.mockneat.unit.types.Ints.ints;
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import javax.inject.Inject;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import net.andreinc.mockneat.MockNeat;
+import org.junit.jupiter.api.*;
 import org.junit.platform.commons.util.StringUtils;
 import url.shortener.server.TestUtils;
 import url.shortener.server.config.exception.BusinessException;
 import url.shortener.server.config.exception.NotUniqueAliasException;
 import url.shortener.server.dto.UrlCreateDto;
-import url.shortener.server.dto.UserCreateDto;
 
 
 @MicronautTest
@@ -24,130 +21,159 @@ public class UrlServiceImplTestPropertyBased {
   @Inject
   UserServiceImpl userService;
   @Inject
-  UrlServiceImpl urlServiceImpl;
+  UrlServiceImpl urlService;
 
-  final static String dummyURI = "https://duckduckgo.com/";
+  final static int REPEATS = 1000;
+  final static String DUMMY_USER_ID = "0";
+  final static String DUMMY_URI = "https://duckduckgo.com/";
 
-  @BeforeEach
-  void createDummyUser() {
-    UserCreateDto userCreateDto = new UserCreateDto()
-        .setEmail("dummy@gmail.com")
-        .setPassword("hardOne123");
-
-    userService.createUser(userCreateDto);
+  static void getStatisticsOnPBT(String methodName, int successCounter) {
+    System.out.printf(
+        "[%s]: %s of %s tests passed (%.2f%%)%n",
+        methodName,
+        successCounter,
+        REPEATS,
+        (float) successCounter / REPEATS * 100
+    );
   }
 
-  @AfterEach
-  void removeDBFolder() {
+  @AfterAll
+  static void removeDBFolder() {
     TestUtils.purgeDirectory(new File("BigTable"));
   }
 
   @Test
   void createUrlPBT() {
-    final String dummyId = "0";
+    final MockNeat mock = MockNeat.threadLocal();
+    boolean isSuccessfulPBT = true;
+    int createUrlSuccessCounter = 0;
 
-    qt().forAll(
-        strings().basicLatinAlphabet().ofLengthBetween(0, 10)
-    ).check(alias -> {
+    for (int i = 0; i < REPEATS; i++) {
+      String mockAlias = mock.strings().size(ints().range(5, 10)).get();
+
       try {
-        UrlCreateDto urlCreateDto = new UrlCreateDto()
+        UrlCreateDto urlDTO = new UrlCreateDto()
             .setUri(new URI("https://www.google.com/"))
-            .setAlias(alias);
+            .setAlias(mockAlias);
 
-        if (!StringUtils.isBlank(alias) && !alias.matches("[A-Za-z0-9]+")) {
-          // System.out.printf("[REGEX MATCH] Alias: \"%s\"%n", alias);
-          return false;
+        if (!StringUtils.isBlank(mockAlias) && !mockAlias.matches("[A-Za-z0-9]+")) {
+          System.out.printf("[REGEX MATCH] Alias: \"%s\"%n", mockAlias);
+          isSuccessfulPBT = false;
         }
 
         try {
-          urlServiceImpl.createUrl(dummyId, urlCreateDto);
-        } catch (NotUniqueAliasException notUniqueAliasException) { // should be thrown in the future
-          // System.out.printf("[NOT UNIQUE ALIAS] Alias: \"%s\"%n", alias);
-          return false;
+          urlService.createUrl(DUMMY_USER_ID, urlDTO);
+        } catch (NotUniqueAliasException notUniqueAliasException) {
+          System.out.printf("[NOT UNIQUE ALIAS] Alias: \"%s\"%n", mockAlias);
+          isSuccessfulPBT = false;
         }
       } catch (URISyntaxException uriSyntaxException) {
-        /* System.out.printf(
+        System.out.printf(
             "[URI SYNTAX EXCEPTION] Message: \"%s\"%n",
             uriSyntaxException.getMessage()
-        ); */
-        return false;
+        );
+        isSuccessfulPBT = false;
       }
 
-      return true;
-    });
+      createUrlSuccessCounter++;
+    }
+
+    getStatisticsOnPBT("createUrlPBT", createUrlSuccessCounter);
+
+    Assertions.assertTrue(isSuccessfulPBT);
   }
 
   @Test
   void getOriginalUrlPBT() {
-    final String dummyId = "0";
+    final MockNeat mock = MockNeat.threadLocal();
+    boolean isSuccessfulPBT = true;
+    int getOriginalUrlSuccessCounter = 0;
 
-    qt().forAll(
-        strings().basicLatinAlphabet().ofLengthBetween(0, 10)
-    ).check(alias -> {
+    for (int i = 0; i < REPEATS; i++) {
+      String mockAlias = mock.strings().size(ints().range(5, 10)).get();
+
       try {
-        UrlCreateDto urlCreateDto = new UrlCreateDto()
-            .setUri(new URI(dummyURI))
-            .setAlias(alias);
-
-          urlServiceImpl.createUrl(dummyId, urlCreateDto);
-
-          try {
-            final String dummyURIFromDB = urlServiceImpl.getOriginalUrl(alias).toString();
-
-            if (!dummyURIFromDB.equals(dummyURI)) {
-              /* System.out.printf(
-                  "[URI EQUALITY] URI \"%s\" is not equal to \"%s\" for alias \"%s\"%n",
-                  dummyURIFromDB,
-                  dummyURI,
-                  alias
-              ); */
-              return false;
-            }
-          } catch (BusinessException businessException) {
-            /* System.out.printf(
-                "[BUSINESS EXCEPTION] Message: \"%s\"%n",
-                businessException.getMessage()
-            ); */
-            return false;
-          }
-      } catch (URISyntaxException uriSyntaxException) {
-        /* System.out.printf(
-            "[URI SYNTAX EXCEPTION] Message: \"%s\"%n",
-            uriSyntaxException.getMessage()
-        ); */
-        return false;
-      }
-
-      return true;
-    });
-  }
-
-  @Test
-  void deleteUserUrlPBT() {
-    final String dummyId = "0";
-
-    qt().forAll(
-      strings().basicLatinAlphabet().ofLengthBetween(0, 10)
-      , strings().basicLatinAlphabet().ofLengthBetween(0, 10)
-    ).check((alias, dummyURIs) -> {
-      try {
-        UrlCreateDto urlCreateDto = new UrlCreateDto()
-          .setUri(new URI(dummyURIs))
-          .setAlias(alias);
-
-        urlServiceImpl.createUrl(dummyId, urlCreateDto);
+        UrlCreateDto urlDTO = new UrlCreateDto().setUri(new URI(DUMMY_URI)).setAlias(mockAlias);
 
         try {
-          urlServiceImpl.deleteUserUrl(dummyId, alias);
+          urlService.createUrl(DUMMY_USER_ID, urlDTO);
 
-        } catch (BusinessException businessException) {
-          return false;
+          try {
+            String dummyURIFromDB = urlService.getOriginalUrl(mockAlias).toString();
+
+            if (!dummyURIFromDB.equals(DUMMY_URI)) {
+              System.out.printf(
+                  "[URI EQUALITY] URI \"%s\" is not equal to \"%s\" for alias \"%s\"%n",
+                  dummyURIFromDB,
+                  DUMMY_URI,
+                  mockAlias
+              );
+              isSuccessfulPBT = false;
+            }
+          } catch (BusinessException businessException) {
+            System.out.printf(
+                "[BUSINESS EXCEPTION] Message: \"%s\"%n",
+                businessException.getMessage()
+            );
+            isSuccessfulPBT = false;
+          }
+        } catch (NotUniqueAliasException notUniqueAliasException) {
+          System.out.printf("[NOT UNIQUE ALIAS] Alias: \"%s\"%n", mockAlias);
+          isSuccessfulPBT = false;
         }
       } catch (URISyntaxException uriSyntaxException) {
-        return false;
+        System.out.printf(
+            "[URI SYNTAX EXCEPTION] Message: \"%s\"%n",
+            uriSyntaxException.getMessage()
+        );
+        isSuccessfulPBT = false;
       }
 
-      return true;
-    });
+      getOriginalUrlSuccessCounter++;
+    }
+
+    getStatisticsOnPBT("getOriginalUrl", getOriginalUrlSuccessCounter);
+
+    Assertions.assertTrue(isSuccessfulPBT);
   }
+
+    @Test
+    void deleteUserUrlPBT() {
+        final MockNeat mock = MockNeat.threadLocal();
+        boolean isSuccessfulPBT = true;
+
+        for (int i = 0; i < REPEATS; i++) {
+            String mockAlias = mock.strings().size(ints().range(3, 10)).get();
+            String mockURI = mock.strings().size(ints().range(3, 10)).get();
+
+            try {
+                UrlCreateDto urlDTO = new UrlCreateDto().setUri(new URI(mockURI)).setAlias(mockAlias);
+
+                try {
+                    urlService.createUrl(DUMMY_USER_ID, urlDTO);
+
+                    try {
+                        urlService.deleteUserUrl(DUMMY_USER_ID, mockAlias);
+                    } catch (BusinessException businessException) {
+                        System.out.printf(
+                            "[BUSINESS EXCEPTION] Message: \"%s\"%n",
+                            businessException.getMessage()
+                        );
+                        isSuccessfulPBT = false;
+                    }
+                } catch (NotUniqueAliasException notUniqueAliasException) {
+                    System.out.printf("[NOT UNIQUE ALIAS] Alias: \"%s\"%n", mockAlias);
+                    isSuccessfulPBT = false;
+                }
+            } catch (URISyntaxException uriSyntaxException) {
+                System.out.printf(
+                    "[URI SYNTAX EXCEPTION] Message: \"%s\"%n",
+                    uriSyntaxException.getMessage()
+                );
+                isSuccessfulPBT = false;
+            }
+        }
+        Assertions.assertTrue(isSuccessfulPBT);
+    }
+
 }
