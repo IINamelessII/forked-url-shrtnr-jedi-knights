@@ -8,11 +8,11 @@ from pathlib import Path
 if __name__ == '__main__':
 
     # cleanup before work
-    for fph in Path('./data').glob('*'):
+    for fph in Path('stats').glob('*'):
         fph.unlink()
 
     # increase QPS iteratively
-    qps = 2
+    qps = 5
 
     # number of error rate > 1% in a row
     error_fail_in_a_row = 0
@@ -23,14 +23,16 @@ if __name__ == '__main__':
         # run load testing
         os.system(
             f'locust -f locustfile.py --headless -u {qps} -r {qps} '
-            f'--run-time 31s --csv stats/{qps} --only-summary'
+            f'--run-time 30s --csv stats/{qps} --only-summary'
         )
 
         # make correct file
         with open(f'stats/{qps}_stats.csv', 'r') as inp, open(f'stats/{qps}.csv', 'w') as out:
             writter = csv.writer(out)
-            for idx, row in enumerate(csv.reader(inp)):
-                if idx in {0, 7}:
+            rows = tuple(csv.reader(inp))
+            desired = {0, len(rows) - 1}
+            for idx, row in enumerate(rows):
+                if idx in desired:
                     writter.writerow(row)
 
         # remove redundant files
@@ -39,12 +41,7 @@ if __name__ == '__main__':
 
         # stats of current run
         with open(f'stats/{qps}.csv', 'r') as inp:
-            rows = list(csv.reader(inp))
-
-        if len(rows) == 1:
-            qps += 2
-            continue
-        row = rows[1]
+            row = tuple(csv.reader(inp))[1]
 
         print(f'INFO: 99% - {row[18]}')
 
@@ -62,4 +59,4 @@ if __name__ == '__main__':
             print('Exit: 3 Error Rate > 1% in a row')
             break
 
-        qps += 2
+        qps += 5

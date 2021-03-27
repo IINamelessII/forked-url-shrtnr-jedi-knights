@@ -1,0 +1,2 @@
+Type,Name,Request Count,Failure Count,Median Response Time,Average Response Time,Min Response Time,Max Response Time,Average Content Size,Requests/s,Failures/s,50%,66%,75%,80%,90%,95%,98%,99%,99.9%,99.99%,100%
+,Aggregated,1352,0,30,51.937423037723946,1.548885999909544,801.3401809998868,192.3949704142012,46.47684487317824,0.0,30,37,42,48,87,260,290,450,790,800,800
