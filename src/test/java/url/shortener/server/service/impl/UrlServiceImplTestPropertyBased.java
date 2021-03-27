@@ -10,10 +10,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import javax.inject.Inject;
 import net.andreinc.mockneat.MockNeat;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.platform.commons.util.StringUtils;
 import url.shortener.server.TestUtils;
 import url.shortener.server.config.exception.BusinessException;
@@ -51,8 +48,8 @@ public class UrlServiceImplTestPropertyBased {
 //   userService.createUser(userDTO);
 // }
 
-  @AfterEach
-  void removeDBFolder() {
+  @AfterAll
+  static void removeDBFolder() {
     TestUtils.purgeDirectory(new File("BigTable"));
   }
 
@@ -151,32 +148,43 @@ public class UrlServiceImplTestPropertyBased {
     Assertions.assertTrue(isSuccessfulPBT);
   }
 
-  @Test
-  void deleteUserUrlPBT() {
-    final String dummyId = "0";
+    @Test
+    void deleteUserUrlPBT() {
+        final MockNeat mock = MockNeat.threadLocal();
+        boolean isSuccessfulPBT = true;
 
-    qt().forAll(
-      strings().basicLatinAlphabet().ofLengthBetween(0, 10)
-      , strings().basicLatinAlphabet().ofLengthBetween(0, 10)
-    ).check((alias, dummyURIs) -> {
-      try {
-        UrlCreateDto urlCreateDto = new UrlCreateDto()
-          .setUri(new URI(dummyURIs))
-          .setAlias(alias);
+        for (int i = 0; i < REPEATS; i++) {
+            String mockAlias = mock.strings().size(ints().range(3, 10)).get();
+            String mockURI = mock.strings().size(ints().range(3, 10)).get();
 
-        urlService.createUrl(dummyId, urlCreateDto);
+            try {
+                UrlCreateDto urlDTO = new UrlCreateDto().setUri(new URI(mockURI)).setAlias(mockAlias);
 
-        try {
-          urlService.deleteUserUrl(dummyId, alias);
+                try {
+                    urlService.createUrl(DUMMY_USER_ID, urlDTO);
 
-        } catch (BusinessException businessException) {
-          return false;
+                    try {
+                        urlService.deleteUserUrl(DUMMY_USER_ID, mockAlias);
+                    } catch (BusinessException businessException) {
+                        System.out.printf(
+                            "[BUSINESS EXCEPTION] Message: \"%s\"%n",
+                            businessException.getMessage()
+                        );
+                        isSuccessfulPBT = false;
+                    }
+                } catch (NotUniqueAliasException notUniqueAliasException) {
+                    System.out.printf("[NOT UNIQUE ALIAS] Alias: \"%s\"%n", mockAlias);
+                    isSuccessfulPBT = false;
+                }
+            } catch (URISyntaxException uriSyntaxException) {
+                System.out.printf(
+                    "[URI SYNTAX EXCEPTION] Message: \"%s\"%n",
+                    uriSyntaxException.getMessage()
+                );
+                isSuccessfulPBT = false;
+            }
         }
-      } catch (URISyntaxException uriSyntaxException) {
-        return false;
-      }
+        Assertions.assertTrue(isSuccessfulPBT);
+    }
 
-      return true;
-    });
-  }
 }
