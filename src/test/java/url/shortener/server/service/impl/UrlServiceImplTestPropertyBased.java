@@ -1,8 +1,6 @@
 package url.shortener.server.service.impl;
 
 import static net.andreinc.mockneat.unit.types.Ints.ints;
-import static org.quicktheories.QuickTheory.qt;
-import static org.quicktheories.generators.SourceDSL.strings;
 
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import java.io.File;
@@ -16,7 +14,7 @@ import url.shortener.server.TestUtils;
 import url.shortener.server.config.exception.BusinessException;
 import url.shortener.server.config.exception.NotUniqueAliasException;
 import url.shortener.server.dto.UrlCreateDto;
-import url.shortener.server.dto.UserCreateDto;
+
 
 @MicronautTest
 public class UrlServiceImplTestPropertyBased {
