@@ -37,15 +37,6 @@ public class UrlServiceImplTestPropertyBased {
     );
   }
 
-//  @BeforeEach
-// void createDummyUser() {
-//   UserCreateDto userDTO = new UserCreateDto()
-//       .setEmail("dummy@gmail.com")
-//       .setPassword("hardOne123");
-//
-//   userService.createUser(userDTO);
-// }
-
   @AfterAll
   static void removeDBFolder() {
     TestUtils.purgeDirectory(new File("BigTable"));
